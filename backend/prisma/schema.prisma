@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Profile {
+  id        String    @id @default(uuid())
+  accountId String    @unique
+  avatarId  String?
+  firstName String?
+  lastName  String?
+  bio       String?
+  email     String?   @unique
+  phone     String?
+  birthday  DateTime?
+  gender    Gender?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model MinioFile {
+  id        String   @id @default(uuid())
+  uploadId  String?
+  sha256    String   @unique
+  size      String
+  type      String
+  finished  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MinioFilePart {
+  id         String   @id @default(uuid())
+  uploadId   String
+  partNumber Int
+  eTag       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
