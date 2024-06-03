@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class MergePartsDto {
+export class RegisterDto {
   @ApiProperty()
-  sha256: string;
+  username: string;
 
   @ApiProperty()
-  uploadId: string;
+  password: string;
 }

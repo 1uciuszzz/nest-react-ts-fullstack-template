@@ -15,14 +15,16 @@ import {
 } from "@nestjs/common";
 import { MinioFileService } from "./minio-file.service";
 import { MinioService, PartItem } from "./minio.service";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
 import { createHmac } from "crypto";
 import { Response } from "express";
 import { Readable } from "stream";
 import { UploadLargeFileDto } from "./dto/upload-large-file.dto";
 import { UploadFilePartDto } from "./dto/upload-file-part.dto";
 import { MergePartsDto } from "./dto/merge-parts.dto";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags("Minio File")
 @Controller("minio-file")
 export class MinioFileController {
   private readonly CHUNK_SIZE = 16 * 1024 * 1024;
@@ -105,6 +107,7 @@ export class MinioFileController {
   }
 
   @Post("upload-file-part")
+  @UseInterceptors(NoFilesInterceptor())
   async uploadFilePart(@Body() payload: UploadFilePartDto) {
     const eTag = await this.minioService.uploadFilePart(
       payload.sha256,
