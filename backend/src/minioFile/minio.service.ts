@@ -44,7 +44,7 @@ export class MinioService {
     }
   };
 
-  createMultipartUpload = async (sha256: string) => {
+  createMultipartUpload = async (sha256: string): Promise<string | null> => {
     const cmd = new CreateMultipartUploadCommand({
       Bucket: this.bucket,
       Key: sha256,
@@ -62,7 +62,7 @@ export class MinioService {
     partNumber: number,
     uploadId: string,
     bytes: Buffer,
-  ) => {
+  ): Promise<string | null> => {
     const command = new UploadPartCommand({
       Bucket: this.bucket,
       Key: sha256,
@@ -82,7 +82,7 @@ export class MinioService {
     sha256: string,
     uploadId: string,
     parts: PartItem[],
-  ) => {
+  ): Promise<string | null> => {
     const command = new CompleteMultipartUploadCommand({
       Bucket: this.bucket,
       Key: sha256,
@@ -99,7 +99,7 @@ export class MinioService {
     }
   };
 
-  getFileBySha256 = async (sha256: string) => {
+  getFileBySha256 = async (sha256: string): Promise<Readable | null> => {
     const command = new GetObjectCommand({
       Bucket: this.bucket,
       Key: sha256,

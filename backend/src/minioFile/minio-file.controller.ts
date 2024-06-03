@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -18,6 +19,8 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { createHmac } from "crypto";
 import { Response } from "express";
 import { Readable } from "stream";
+import { UploadLargeFileDto } from "./dto/upload-large-file.dto";
+import { UploadFilePartDto } from "./dto/upload-file-part.dto";
 
 @Controller("minio-file")
 export class MinioFileController {
@@ -44,10 +47,57 @@ export class MinioFileController {
   }
 
   @Post("upload-large-file")
-  async uploadLargeFile() {}
+  async uploadLargeFile(@Body() payload: UploadLargeFileDto) {
+    const minioFile = await this.minioFileService.getFileBySha256(
+      payload.sha256,
+    );
+    if (minioFile) {
+      if (minioFile.finished) {
+        return minioFile;
+      } else {
+        const partItems = await this.minioFileService.getPartsByUploadId(
+          minioFile.uploadId,
+        );
+        if (partItems.length > 0) {
+          /**  */
+        }
+      }
+    }
+    const uploadId = await this.minioService.createMultipartUpload(
+      payload.sha256,
+    );
+    if (uploadId) {
+      const minioFile = await this.minioFileService.uploadLargeFile(
+        payload.sha256,
+        payload.size,
+        payload.type,
+        uploadId,
+      );
+      return minioFile;
+    } else {
+      throw new InternalServerErrorException();
+    }
+  }
 
   @Post("upload-file-part")
-  async uploadFilePart() {}
+  async uploadFilePart(@Body() payload: UploadFilePartDto) {
+    const eTag = await this.minioService.uploadFilePart(
+      payload.sha256,
+      payload.partNumber,
+      payload.uploadId,
+      payload.bytes,
+    );
+    if (eTag) {
+      const minioFilePart = await this.minioFileService.uploadFilePart(
+        payload.uploadId,
+        payload.partNumber,
+        eTag,
+      );
+      return minioFilePart;
+    } else {
+      throw new InternalServerErrorException();
+    }
+  }
 
   @Patch("finish-upload")
   async finishUpload() {}

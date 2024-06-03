@@ -5,6 +5,15 @@ import { PrismaService } from "src/shared/prisma.service";
 export class MinioFileService {
   constructor(private readonly prisma: PrismaService) {}
 
+  getFileBySha256 = async (sha256: string) => {
+    const minioFile = await this.prisma.minioFile.findUnique({
+      where: {
+        sha256,
+      },
+    });
+    return minioFile;
+  };
+
   getFileById = async (id: string) => {
     const minioFile = await this.prisma.minioFile.findUnique({
       where: {
@@ -12,6 +21,15 @@ export class MinioFileService {
       },
     });
     return minioFile;
+  };
+
+  getPartsByUploadId = async (uploadId: string) => {
+    const minioFileParts = await this.prisma.minioFilePart.findMany({
+      where: {
+        uploadId,
+      },
+    });
+    return minioFileParts;
   };
 
   uploadSmallFile = async (sha256: string, size: string, type: string) => {
