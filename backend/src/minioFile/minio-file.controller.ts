@@ -14,16 +14,19 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { MinioFileService } from "./minio-file.service";
-import { MinioService } from "./minio.service";
+import { MinioService, PartItem } from "./minio.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { createHmac } from "crypto";
 import { Response } from "express";
 import { Readable } from "stream";
 import { UploadLargeFileDto } from "./dto/upload-large-file.dto";
 import { UploadFilePartDto } from "./dto/upload-file-part.dto";
+import { MergePartsDto } from "./dto/merge-parts.dto";
 
 @Controller("minio-file")
 export class MinioFileController {
+  private readonly CHUNK_SIZE = 16 * 1024 * 1024;
+
   constructor(
     private readonly minioFileService: MinioFileService,
     private readonly minioService: MinioService,
@@ -48,18 +51,37 @@ export class MinioFileController {
 
   @Post("upload-large-file")
   async uploadLargeFile(@Body() payload: UploadLargeFileDto) {
+    const totalPartsNumber = Math.ceil(
+      parseInt(payload.size) / this.CHUNK_SIZE,
+    );
+    const needParts = [];
     const minioFile = await this.minioFileService.getFileBySha256(
       payload.sha256,
     );
     if (minioFile) {
       if (minioFile.finished) {
-        return minioFile;
+        return { ...minioFile, needParts };
       } else {
         const partItems = await this.minioFileService.getPartsByUploadId(
           minioFile.uploadId,
         );
         if (partItems.length > 0) {
-          /**  */
+          const partMap = new Set(partItems.map((part) => part.partNumber));
+          for (let i = 0; i < totalPartsNumber; i++) {
+            const partNumber = i + 1;
+            if (!partMap.has(partNumber)) {
+              needParts.push(partNumber);
+            }
+          }
+          return { ...minioFile, needParts };
+        } else {
+          return {
+            ...minioFile,
+            needParts: Array.from(
+              { length: totalPartsNumber },
+              (_, i) => i + 1,
+            ),
+          };
         }
       }
     }
@@ -73,7 +95,10 @@ export class MinioFileController {
         payload.type,
         uploadId,
       );
-      return minioFile;
+      return {
+        ...minioFile,
+        needParts: Array.from({ length: totalPartsNumber }, (_, i) => i + 1),
+      };
     } else {
       throw new InternalServerErrorException();
     }
@@ -100,7 +125,28 @@ export class MinioFileController {
   }
 
   @Patch("finish-upload")
-  async finishUpload() {}
+  async finishUpload(@Body() payload: MergePartsDto) {
+    const partItems = await this.minioFileService.getPartsByUploadId(
+      payload.uploadId,
+    );
+    const parts: PartItem[] = partItems.map((partItem) => {
+      return {
+        ETag: partItem.eTag,
+        PartNumber: partItem.partNumber,
+      };
+    });
+    const sha256 = await this.minioService.mergeFileParts(
+      payload.sha256,
+      payload.uploadId,
+      parts,
+    );
+    if (sha256) {
+      const minioFile = await this.minioFileService.mergeFileParts(sha256);
+      return minioFile;
+    } else {
+      throw new InternalServerErrorException();
+    }
+  }
 
   @Get(":id")
   async getMinioFile(
