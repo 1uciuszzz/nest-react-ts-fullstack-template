@@ -13,6 +13,12 @@ export const router = createBrowserRouter([
           Component: (await import(`./pages/home/Page.tsx`)).default,
         }),
       },
+      {
+        path: "me",
+        lazy: async () => ({
+          Component: (await import(`./pages/profile/Page.tsx`)).default,
+        }),
+      },
     ],
   },
   {

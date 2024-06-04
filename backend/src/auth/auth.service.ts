@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/shared/prisma.service";
 import { compare, genSalt, hash } from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
+import { Gender } from "@prisma/client";
 
 @Injectable()
 export class AuthService {
@@ -81,6 +82,33 @@ export class AuthService {
     const profile = await this.prisma.profile.findUnique({
       where: {
         accountId,
+      },
+    });
+    return profile;
+  };
+
+  updateProfile = async (
+    accountId: string,
+    avatarId: string,
+    bio: string,
+    email: string,
+    birthday: string,
+    firstName: string,
+    lastName: string,
+    phone: string,
+    gender: Gender,
+  ) => {
+    const profile = await this.prisma.profile.update({
+      where: { accountId },
+      data: {
+        avatarId,
+        bio,
+        email,
+        birthday,
+        firstName,
+        lastName,
+        phone,
+        gender,
       },
     });
     return profile;

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Get,
   Post,
+  Put,
   UseInterceptors,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
@@ -14,6 +15,7 @@ import { Public } from "./auth.decorator";
 import { NoFilesInterceptor } from "@nestjs/platform-express";
 import { User } from "./user.decorator";
 import { TokenPayload } from "./dto/user.dto";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -67,5 +69,24 @@ export class AuthController {
     const account = await this.authService.getAccountByUsername(user.username);
     const profile = await this.authService.getProfile(user.id);
     return { account, profile };
+  }
+
+  @Put("profile")
+  async updateProfile(
+    @User() user: TokenPayload,
+    @Body() payload: UpdateProfileDto,
+  ) {
+    const profile = await this.authService.updateProfile(
+      user.id,
+      payload.avatarId,
+      payload.bio,
+      payload.email,
+      payload.birthday,
+      payload.firstName,
+      payload.lastName,
+      payload.phone,
+      payload.gender,
+    );
+    return profile;
   }
 }

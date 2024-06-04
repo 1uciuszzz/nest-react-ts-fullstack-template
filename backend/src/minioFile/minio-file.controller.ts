@@ -38,6 +38,10 @@ export class MinioFileController {
   @UseInterceptors(FileInterceptor("file"))
   async uploadSmallFile(@UploadedFile() file: Express.Multer.File) {
     const sha256 = createHmac("sha256", file.buffer).digest("hex");
+    const minioFile = await this.minioFileService.getFileBySha256(sha256);
+    if (minioFile) {
+      return minioFile;
+    }
     const uploaded = await this.minioService.uploadFile(sha256, file.buffer);
     if (uploaded) {
       const minioFile = this.minioFileService.uploadSmallFile(

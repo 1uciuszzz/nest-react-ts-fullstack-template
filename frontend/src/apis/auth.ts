@@ -1,6 +1,6 @@
 import { Res, http } from "./http";
 
-enum Gender {
+export enum Gender {
   MALE = "MALE",
   FEMALE = "FEMALE",
   OTHER = "OTHER",
@@ -48,6 +48,17 @@ type MeRes = {
   profile: Profile;
 };
 
+type UpdateProfileReq = {
+  avatarId: string;
+  bio: string;
+  email: string;
+  birthday: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  gender: Gender;
+};
+
 export const API_AUTH = {
   REGISTER: (payload: RegisterReq): Res<RegisterRes> => {
     const formData = new FormData();
@@ -62,4 +73,6 @@ export const API_AUTH = {
     return http.post(`/auth/login`, formData);
   },
   ME: (): Res<MeRes> => http.get(`/auth`),
+  UPDATE_PROFILE: (payload: UpdateProfileReq): Res<Profile> =>
+    http.put(`/auth/profile`, payload),
 };

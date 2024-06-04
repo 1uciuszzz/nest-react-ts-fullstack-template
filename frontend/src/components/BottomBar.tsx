@@ -24,7 +24,7 @@ const BottomBar = () => {
           label="Me"
           icon={<AccountCircle />}
           component={Link}
-          to="/"
+          to="/me"
         />
       </BottomNavigation>
     </>
