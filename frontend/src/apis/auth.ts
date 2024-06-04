@@ -6,14 +6,14 @@ enum Gender {
   OTHER = "OTHER",
 }
 
-type Account = {
+export type Account = {
   id: string;
   username: string;
   createdAt: string;
   updatedAt: string;
 };
 
-type Profile = {
+export type Profile = {
   id: string;
   accountId: string;
   avatarId: string | null;
@@ -28,18 +28,25 @@ type Profile = {
   updatedAt: string;
 };
 
-type Token = string;
+export type Token = string;
 
-type RegisterReq = {
+export type RegisterReq = {
   username: string;
   password: string;
 };
 
-type RegisterRes = Account & Profile & { token: Token };
+type RegisterRes = {
+  token: Token;
+};
 
-type LoginReq = RegisterReq;
+export type LoginReq = RegisterReq;
 
 type LoginRes = RegisterRes;
+
+type MeRes = {
+  account: Account;
+  profile: Profile;
+};
 
 export const API_AUTH = {
   REGISTER: (payload: RegisterReq): Res<RegisterRes> => {
@@ -54,4 +61,5 @@ export const API_AUTH = {
     formData.append("password", payload.password);
     return http.post(`/auth/login`, formData);
   },
+  ME: (): Res<MeRes> => http.get(`/auth`),
 };

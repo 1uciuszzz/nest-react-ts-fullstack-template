@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  Get,
   Post,
   UseInterceptors,
 } from "@nestjs/common";
@@ -11,6 +12,8 @@ import { LoginDto } from "./dto/login.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { Public } from "./auth.decorator";
 import { NoFilesInterceptor } from "@nestjs/platform-express";
+import { User } from "./user.decorator";
+import { TokenPayload } from "./dto/user.dto";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -36,8 +39,7 @@ export class AuthController {
         account.id,
         account.username,
       );
-      const profile = await this.authService.createProfile(account.id);
-      return { account, profile, token };
+      return { token };
     }
   }
 
@@ -50,15 +52,20 @@ export class AuthController {
       payload.password,
     );
     if (account) {
-      delete account.password;
       const token = await this.authService.getToken(
         account.id,
         account.username,
       );
-      const profile = await this.authService.getProfile(account.id);
-      return { account, profile, token };
+      return { token };
     } else {
       throw new ForbiddenException();
     }
+  }
+
+  @Get()
+  async me(@User() user: TokenPayload) {
+    const account = await this.authService.getAccountByUsername(user.username);
+    const profile = await this.authService.getProfile(user.id);
+    return { account, profile };
   }
 }
