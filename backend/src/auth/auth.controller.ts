@@ -49,8 +49,8 @@ export class AuthController {
       payload.username,
       payload.password,
     );
-    delete account.password;
     if (account) {
+      delete account.password;
       const token = await this.authService.getToken(
         account.id,
         account.username,

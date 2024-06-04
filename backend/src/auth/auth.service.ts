@@ -56,9 +56,13 @@ export class AuthService {
         username,
       },
     });
-    const isMatch = await compare(password, account.password);
-    if (isMatch) {
-      return account;
+    if (account) {
+      const isMatch = await compare(password, account.password);
+      if (isMatch) {
+        return account;
+      } else {
+        return null;
+      }
     } else {
       return null;
     }
