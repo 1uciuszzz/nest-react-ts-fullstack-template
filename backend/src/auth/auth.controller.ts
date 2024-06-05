@@ -37,6 +37,7 @@ export class AuthController {
         payload.username,
         hashedPassword,
       );
+      await this.authService.createProfile(account.id);
       const token = await this.authService.getToken(
         account.id,
         account.username,
