@@ -199,7 +199,7 @@ const ProfilePage = () => {
           <TextField
             variant="standard"
             label="Email"
-            type="text"
+            type="email"
             value={data.email || ""}
             onChange={(e) =>
               setData((d) => {
@@ -211,7 +211,7 @@ const ProfilePage = () => {
           <TextField
             variant="standard"
             label="Phone"
-            type="text"
+            type="tel"
             value={data.phone || ""}
             onChange={(e) =>
               setData((d) => {
