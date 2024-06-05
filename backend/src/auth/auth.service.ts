@@ -104,7 +104,7 @@ export class AuthService {
         avatarId,
         bio,
         email,
-        birthday,
+        birthday: birthday || null,
         firstName,
         lastName,
         phone,
