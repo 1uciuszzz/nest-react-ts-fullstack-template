@@ -5,6 +5,7 @@ import {
   Get,
   Post,
   Put,
+  UnauthorizedException,
   UseInterceptors,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
@@ -69,7 +70,11 @@ export class AuthController {
   async me(@User() user: TokenPayload) {
     const account = await this.authService.getAccountByUsername(user.username);
     const profile = await this.authService.getProfile(user.id);
-    return { account, profile };
+    if (account && profile) {
+      return { account, profile };
+    } else {
+      throw new UnauthorizedException();
+    }
   }
 
   @Put("profile")
